@@ -116,8 +116,6 @@ public class MainActivity extends AppCompatActivity {
 
         public StoreTask(String name, String surname, String gender, String age) {
             data = new Data();
-
-
         }
 
         @Override
