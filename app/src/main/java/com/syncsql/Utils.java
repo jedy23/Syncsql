@@ -12,13 +12,22 @@ public class Utils {
 
         rows = rows.substring(1, rows.length()-1);
 
-        for(String s : rows.split(",")){
+        boolean isr = false;
 
-            s = s.substring(1,s.length()-1);
-            Data data = new Data();
-            // Todo review how is the data here..
+        for(int i=0; i<rows.length(); ++i){
+            if(rows.charAt(i)=='{')
+                isr = true;
+            else if(rows.charAt(i)=='}')
+                isr = false;
+            else{
+                if(isr){
+                    while(rows.charAt(i)==' ' || rows.charAt(i)=='"' ||
+                            rows.charAt(i)!=':') i++;
 
-            cursor.add(data);
+                }
+
+            }
+
         }
 
         return cursor;

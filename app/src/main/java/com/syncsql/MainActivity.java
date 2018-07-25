@@ -134,6 +134,10 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... voids) {
             // Approach offline operations + sync step
             String select_tmp_query = "select * from tab_tmp";
+            String insert_query = "insert into tab(name, surname, gender" +
+                    ",age) values("+data.getName()+","+data.getSurname()+","+
+                    data.getGender()+","+data.getAge()+")";
+            String delete_query = "delete from tab";
             try{
                 url = new URL(url_server);
 
@@ -187,21 +191,52 @@ public class MainActivity extends AppCompatActivity {
 
                     ArrayList<Data> arraydata = Utils.parse_string(result_f);
 
-                    // check integrity of the data TODO from here...
+                    // check integrity of the data
                     Cursor dblite = dbManager.select_all(DBLiteHelper.TABLE_NAME_TMP);
 
                     if (arraydata.size() > 0) {
                         // update locally
+                        for(Data d : arraydata){
+                            dbManager.insert(DBLiteHelper.TABLE_NAME,
+                                    d.getName(),d.getSurname(),
+                                    d.getGender(),d.getAge());
+                        }
+
+                        conn.disconnect();
+                        builder = new Uri.Builder()
+                                .appendQueryParameter("QUERY", delete_query);
+
+                        query = builder.build().getEncodedQuery();
+
+                        // Open connection for sending data
+
+                        os = conn.getOutputStream();
+                        writer = new BufferedWriter(
+                                new OutputStreamWriter(os, "UTF-8"));
+                        writer.write(query);
+                        writer.flush();
+                        writer.close();
+                        os.close();
+                        conn.connect();
+
+                        response_code = conn.getResponseCode();
+                        if (response_code != HttpURLConnection.HTTP_OK){
+                            // update table here
+                        }
                     }
                     if (dblite.getCount() > 0) {
                         // update in the server
+
                     }
 
                     // check integrity, if duplicates are not allowed
 
+
                     // insert the data in both databases
                     dbManager.insert(DBLiteHelper.TABLE_NAME,
                             data.getName(), data.getSurname(), data.getGender(), data.getAge());
+
+
 
                     // Todo insert remote
 
@@ -210,8 +245,6 @@ public class MainActivity extends AppCompatActivity {
                    dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
                       data.getName(), data.getSurname(), data.getGender(), data.getAge());
                 }
-
-
             } catch (IOException e){
                 e.printStackTrace();
             }
