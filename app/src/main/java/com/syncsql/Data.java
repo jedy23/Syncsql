@@ -1,10 +1,33 @@
 package com.syncsql;
 
 public class Data {
-    private String id, name, surname, gender, age;
+    private String id, name, surname, gender, age, stat;
 
     public String getId() {
         return id;
+    }
+
+    public void setvar(Integer type, String value){
+        switch (type){
+            case 0:
+                setId(value);
+                break;
+            case 1:
+                setName(value);
+                break;
+            case 2:
+                setSurname(value);
+                break;
+            case 3:
+                setGender(value);
+                break;
+            case 4:
+                setAge(value);
+                break;
+            case 5:
+                setStat(value);
+                break;
+        }
     }
 
     public void setId(String id) {
@@ -41,5 +64,13 @@ public class Data {
 
     public void setAge(String age) {
         this.age = age;
+    }
+
+    public String getStat() {
+        return stat;
+    }
+
+    public void setStat(String stat) {
+        this.stat = stat;
     }
 }

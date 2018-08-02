@@ -137,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
             String insert_query = "insert into tab(name, surname, gender" +
                     ",age) values("+data.getName()+","+data.getSurname()+","+
                     data.getGender()+","+data.getAge()+")";
-            String delete_query = "delete from tab";
+            // Todo add temporal id, to tab_tmp  in order to delete...
+            String delete_query = "delete from tab where id = ";
             try{
                 url = new URL(url_server);
 
@@ -189,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
                     result_f = result.toString();
 
 
+                    // ToDo test this
                     ArrayList<Data> arraydata = Utils.parse_string(result_f);
 
                     // check integrity of the data
@@ -200,36 +202,40 @@ public class MainActivity extends AppCompatActivity {
                             dbManager.insert(DBLiteHelper.TABLE_NAME,
                                     d.getName(),d.getSurname(),
                                     d.getGender(),d.getAge());
-                        }
 
-                        conn.disconnect();
-                        builder = new Uri.Builder()
-                                .appendQueryParameter("QUERY", delete_query);
 
-                        query = builder.build().getEncodedQuery();
+                            conn.disconnect();
+                            builder = new Uri.Builder()
+                                    .appendQueryParameter("QUERY", delete_query);
 
-                        // Open connection for sending data
+                            query = builder.build().getEncodedQuery();
 
-                        os = conn.getOutputStream();
-                        writer = new BufferedWriter(
-                                new OutputStreamWriter(os, "UTF-8"));
-                        writer.write(query);
-                        writer.flush();
-                        writer.close();
-                        os.close();
-                        conn.connect();
+                            // Open connection for sending data
 
-                        response_code = conn.getResponseCode();
-                        if (response_code != HttpURLConnection.HTTP_OK){
-                            // update table here
+                            os = conn.getOutputStream();
+                            writer = new BufferedWriter(
+                                    new OutputStreamWriter(os, "UTF-8"));
+                            writer.write(query);
+                            writer.flush();
+                            writer.close();
+                            os.close();
+                            conn.connect();
+
+                            response_code = conn.getResponseCode();
+                            if (response_code != HttpURLConnection.HTTP_OK){
+                                // update table here for deleting remote later
+
+                            }
                         }
                     }
                     if (dblite.getCount() > 0) {
                         // update in the server
 
+
                     }
 
-                    // check integrity, if duplicates are not allowed
+                    // if duplicates are not allowed, check primary key
+                    // in this case is allowed since is autoincrement
 
 
                     // insert the data in both databases
