@@ -1,7 +1,24 @@
 package com.syncsql;
 
 public class Data {
-    private String id, name, surname, gender, age, stat;
+    private String id, name, surname, gender, age, stat, tmpid;
+
+    Data(){
+        id = "";
+        name = "";
+        surname = "";
+        gender = "";
+        stat = "";
+        tmpid = "";
+    }
+
+    public String getTmpid() {
+        return tmpid;
+    }
+
+    public void setTmpid(String tmpid) {
+        this.tmpid = tmpid;
+    }
 
     public String getId() {
         return id;
@@ -26,6 +43,9 @@ public class Data {
                 break;
             case 5:
                 setStat(value);
+                break;
+            case 6:
+                setTmpid(value);
                 break;
         }
     }

@@ -11,7 +11,7 @@ public class DBLiteHelper extends SQLiteOpenHelper {
     private String create_tab = "create table tab (id integer primary key autoincrement," +
             "name text, surname text, gender text, age text)";
     private String create_temporal = "create table tab_tmp (id integer primary key autoincrement," +
-            "name text, surname text, gender text, age text, stat text)";
+            "name text, surname text, gender text, age text, stat text, tmpid integer)";
 
     private String drop_test = "drop table if exists test";
 
@@ -24,6 +24,7 @@ public class DBLiteHelper extends SQLiteOpenHelper {
     public static final String COL_GNDR = "gender";
     public static final String COL_AGE = "age";
     public static final String COL_STAT = "stat";
+    public static final String COL_TMPID = "tmpid";
 
 
 

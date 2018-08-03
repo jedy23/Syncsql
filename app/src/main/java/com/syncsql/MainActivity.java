@@ -137,7 +137,9 @@ public class MainActivity extends AppCompatActivity {
             String insert_query = "insert into tab(name, surname, gender" +
                     ",age) values("+data.getName()+","+data.getSurname()+","+
                     data.getGender()+","+data.getAge()+")";
+            String insert_query2;
             // Todo add temporal id, to tab_tmp  in order to delete...
+            // in the remote server..
             String delete_query = "delete from tab where id = ";
             try{
                 url = new URL(url_server);
@@ -201,12 +203,13 @@ public class MainActivity extends AppCompatActivity {
                         for(Data d : arraydata){
                             dbManager.insert(DBLiteHelper.TABLE_NAME,
                                     d.getName(),d.getSurname(),
-                                    d.getGender(),d.getAge());
+                                    d.getGender(),d.getAge(), null, null);
 
 
                             conn.disconnect();
                             builder = new Uri.Builder()
-                                    .appendQueryParameter("QUERY", delete_query);
+                                    .appendQueryParameter("QUERY",
+                                            delete_query+d.getId());
 
                             query = builder.build().getEncodedQuery();
 
@@ -224,12 +227,48 @@ public class MainActivity extends AppCompatActivity {
                             response_code = conn.getResponseCode();
                             if (response_code != HttpURLConnection.HTTP_OK){
                                 // update table here for deleting remote later
-
+                                dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
+                                        d.getName(),
+                                        d.getSurname(),
+                                        d.getGender(),
+                                        d.getAge(),
+                                        "d",
+                                        d.getId());
                             }
                         }
                     }
                     if (dblite.getCount() > 0) {
                         // update in the server
+
+                        while(dblite.moveToNext()){
+                            os = conn.getOutputStream();
+                            writer = new BufferedWriter(
+                                    new OutputStreamWriter(os, "UTF-8"));
+
+                            // check status from record
+                            // todo
+
+                            writer.write(query);
+
+
+
+                            writer.flush();
+                            writer.close();
+                            os.close();
+                            conn.connect();
+
+                            response_code = conn.getResponseCode();
+
+                            if(response_code==HttpURLConnection.HTTP_OK){
+                                // clear records of temporal
+
+                                /*
+                                * insert_query2 = "insert into tab(name, surname, gender" +
+                    ",age) values("+data.getName()+","+data.getSurname()+","+
+                    data.getGender()+","+data.getAge()+")";
+                                * */
+                            }
+                        }
 
 
                     }
@@ -237,19 +276,39 @@ public class MainActivity extends AppCompatActivity {
                     // if duplicates are not allowed, check primary key
                     // in this case is allowed since is autoincrement
 
-
                     // insert the data in both databases
                     dbManager.insert(DBLiteHelper.TABLE_NAME,
-                            data.getName(), data.getSurname(), data.getGender(), data.getAge());
+                            data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                            null,null);
 
+                    os = conn.getOutputStream();
+                    writer = new BufferedWriter(
+                            new OutputStreamWriter(os, "UTF-8"));
 
+                    writer.write(insert_query);
 
-                    // Todo insert remote
+                    writer.flush();
+                    writer.close();
+                    os.close();
+                    conn.connect();
+
+                    response_code = conn.getResponseCode();
+                    if(response_code!=HttpURLConnection.HTTP_OK){
+                        // insert in tmp table
+                        dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
+                                data.getName(),
+                                data.getSurname(),
+                                data.getGender(),
+                                data.getAge(),
+                                "i",
+                                data.getId());
+                    }
 
                 }else{
                     // insert in local temporal table
                    dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
-                      data.getName(), data.getSurname(), data.getGender(), data.getAge());
+                      data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                           data.getStat(), data.getTmpid());
                 }
             } catch (IOException e){
                 e.printStackTrace();

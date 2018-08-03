@@ -23,6 +23,7 @@ public class Utils {
         map.put("gender", 3);
         map.put("age", 4);
         map.put("stat", 5);
+        map.put("tmpid", 6);
 
         boolean isr = false;
         int j,k;

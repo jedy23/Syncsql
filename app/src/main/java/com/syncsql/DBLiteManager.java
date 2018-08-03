@@ -28,13 +28,19 @@ public class DBLiteManager {
         sqLiteDatabase.close();
     }
 
-    public long insert(String table, String name, String surname, String gender, String age){
+    public long insert(String table, String name, String surname, String gender, String age,
+                       String stat, String tmpid){
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(DBLiteHelper.COL_NAME, name);
         contentValues.put(DBLiteHelper.COL_SURNME, surname);
         contentValues.put(DBLiteHelper.COL_GNDR, gender);
         contentValues.put(DBLiteHelper.COL_AGE, age);
+
+        if(stat!=null)
+            contentValues.put(DBLiteHelper.COL_STAT, stat);
+        if(tmpid!=null)
+            contentValues.put(DBLiteHelper.COL_TMPID, tmpid);
 
         return sqLiteDatabase.insert(table, null, contentValues);
     }
