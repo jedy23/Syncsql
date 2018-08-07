@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-       /* nameEdit = findViewById(R.id.edit_name);
+        nameEdit = findViewById(R.id.edit_name);
         surnameEdit = findViewById(R.id.edit_surname);
         ageEdit = findViewById(R.id.edit_age);
 
@@ -62,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
 
         dbManager = new DBLiteManager(this);
 
-        radioGroup = findViewById(R.id.radioGroup); */
+        radioGroup = findViewById(R.id.radioGroup);
 
-        /*
+
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -86,10 +86,10 @@ public class MainActivity extends AppCompatActivity {
         loadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, Records.class);
-                startActivity(intent);
+                //Intent intent = new Intent(MainActivity.this, Records.class);
+                //startActivity(intent);
             }
-        });*/
+        });
     }
 
     public void onRadioButtonClicked(View view){
@@ -137,9 +137,6 @@ public class MainActivity extends AppCompatActivity {
             String insert_query = "insert into tab(name, surname, gender" +
                     ",age) values("+data.getName()+","+data.getSurname()+","+
                     data.getGender()+","+data.getAge()+")";
-            String insert_query2;
-            // Todo add temporal id, to tab_tmp  in order to delete...
-            // in the remote server..
             String delete_query = "delete from tab where id = ";
             try{
                 url = new URL(url_server);
@@ -192,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                     result_f = result.toString();
 
 
-                    // ToDo test this
+
                     ArrayList<Data> arraydata = Utils.parse_string(result_f);
 
                     // check integrity of the data
@@ -201,10 +198,8 @@ public class MainActivity extends AppCompatActivity {
                     if (arraydata.size() > 0) {
                         // update locally
                         for(Data d : arraydata){
-                            dbManager.insert(DBLiteHelper.TABLE_NAME,
-                                    d.getName(),d.getSurname(),
-                                    d.getGender(),d.getAge(), null, null);
-
+                            // check status
+                            // try to erase it first in the remote
 
                             conn.disconnect();
                             builder = new Uri.Builder()
@@ -225,15 +220,40 @@ public class MainActivity extends AppCompatActivity {
                             conn.connect();
 
                             response_code = conn.getResponseCode();
-                            if (response_code != HttpURLConnection.HTTP_OK){
-                                // update table here for deleting remote later
-                                dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
-                                        d.getName(),
-                                        d.getSurname(),
-                                        d.getGender(),
-                                        d.getAge(),
-                                        "d",
-                                        d.getId());
+                            if (response_code == HttpURLConnection.HTTP_OK){
+                                // update local table
+                                switch (data.getStat()){
+                                    case "i":
+                                        dbManager.insert(DBLiteHelper.TABLE_NAME,
+                                                d.getName(),
+                                                d.getSurname(),
+                                                d.getGender(),
+                                                d.getAge(),
+                                                null, null);
+                                        break;
+
+                                    case "d":
+                                        if(dbManager.delete(DBLiteHelper.TABLE_NAME,
+                                                d.getId()) == -1)
+                                            Log.e("ERROR", "SQLite deleting data "+
+                                            d.getId());
+                                        break;
+
+                                    case "u":
+                                        if(dbManager.update(DBLiteHelper.TABLE_NAME,
+                                                d.getId(), d.getName(), d.getSurname(),
+                                                d.getGender(), d.getAge(),
+                                                null, null) == -1)
+                                            Log.e("ERROR", "SQLite updating data "+
+                                            d.getId());
+                                        break;
+
+                                    default:
+                                        // problems with remote database
+                                        Log.e("ERROR","Problems with remote database");
+
+                                }
+
                             }
                         }
                     }
@@ -247,6 +267,38 @@ public class MainActivity extends AppCompatActivity {
 
                             // check status from record
                             // todo
+                            String queryr = null;
+                            switch (dblite.getString(DBLiteHelper.COL_STATi)){
+                                case "i":
+                                    queryr = "insert into tab(name, surname, gender" +
+                                            ",age) values("+
+                                            dblite.getString(DBLiteHelper.COL_NAMEi) +","+
+                                            dblite.getString(DBLiteHelper.COL_SURNMEi) +","+
+                                            dblite.getString(DBLiteHelper.COL_GNDRi) +","+
+                                            dblite.getString(DBLiteHelper.COL_AGEi) +")";
+                                    break;
+
+                                case "d":
+                                    queryr = "delete from tab where id = " +
+                                            dblite.getString(DBLiteHelper.COL_TMPIDi);
+                                    break;
+
+                                case "u":
+                                    queryr = "update tab set " +
+                                            DBLiteHelper.COL_NAME + "=" +
+                                            dblite.getString(DBLiteHelper.COL_NAMEi) + "," +
+                                            DBLiteHelper.COL_SURNME + "=" +
+                                            dblite.getString(DBLiteHelper.COL_SURNMEi) + "," +
+                                            DBLiteHelper.COL_AGE + "=" +
+                                            dblite.getString(DBLiteHelper.COL_AGEi) +
+                                            DBLiteHelper.COL_GNDR + "=" +
+                                            dblite.getString(DBLiteHelper.COL_GNDRi) +
+                                            "where "+DBLiteHelper.COL_ID + "=" +
+                                            dblite.getString(DBLiteHelper.COL_TMPIDi);
+                                    break;
+                            }
+
+                            if(queryr==null) continue;
 
                             writer.write(query);
 
@@ -262,11 +314,11 @@ public class MainActivity extends AppCompatActivity {
                             if(response_code==HttpURLConnection.HTTP_OK){
                                 // clear records of temporal
 
-                                /*
-                                * insert_query2 = "insert into tab(name, surname, gender" +
-                    ",age) values("+data.getName()+","+data.getSurname()+","+
-                    data.getGender()+","+data.getAge()+")";
-                                * */
+                                if(dbManager.delete(DBLiteHelper.TABLE_NAME_TMP,
+                                        dblite.getString(DBLiteHelper.COL_IDi)) == -1){
+                                    Log.e("ERROR", "SQLite deleting from tmp id::"+
+                                    dblite.getString(DBLiteHelper.COL_IDi));
+                                }
                             }
                         }
 

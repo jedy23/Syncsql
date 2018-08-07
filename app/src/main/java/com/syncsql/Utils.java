@@ -11,9 +11,14 @@ public class Utils {
     public static ArrayList<Data> parse_string(String rows){
         ArrayList<Data> cursor = new ArrayList<>();
 
-        rows = rows.substring(1, rows.length()-1);
-
         // id, name, surname, gender, age, stat
+        /* Parsing this...
+        [{"id":"1","name":"name","surname":"surname","gender":"gender","age":"age","stat":"d",
+        "tmpid":"1"},{"id":"2","name":"name2","surname":"surname2","gender":"gender2","age":"age2",
+        "stat":"d","tmpid":"2"}]
+         */
+
+        rows = rows.substring(1, rows.length()-1);
 
         HashMap<String, Integer> map = new HashMap<>();
 
@@ -29,13 +34,17 @@ public class Utils {
         int j,k;
         String tkey, tvalue;
 
-        // ToDo test this shit
-
+        Log.e("DEBUG","string::"+rows);
+        Data data = new Data();
         for(int i=0; i<rows.length(); ++i){
-            if(rows.charAt(i)=='{')
+            if(rows.charAt(i)=='{') {
                 isr = true;
-            else if(rows.charAt(i)=='}')
+                data = new Data();
+            }
+            else if(rows.charAt(i)=='}') {
                 isr = false;
+                cursor.add(data);
+            }
             else{
                 if(isr){
                   j = i;
@@ -43,17 +52,14 @@ public class Utils {
                   k = j;
                   while(rows.charAt(k) != ':') k--;
 
-                  tkey = rows.substring(i+1, k-2);
-
-                  if(rows.charAt(j)=='}') j--;
+                  tkey = rows.substring(i+1, k-1);
 
                   tvalue = rows.substring(k+2, j-1);
 
-                  Data data = new Data();
+                  if(rows.charAt(j)=='}') j--;
+                  i = j;
 
                   data.setvar(map.get(tkey),tvalue);
-
-                  cursor.add(data);
                 }
             }
         }

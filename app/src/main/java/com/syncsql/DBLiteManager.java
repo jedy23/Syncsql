@@ -51,6 +51,26 @@ public class DBLiteManager {
         return sqLiteDatabase.delete(table, where, args);
     }
 
+    public long update(String table, String id, String name, String surname,
+                       String gender, String age,
+                       String stat, String tmpid){
+
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(DBLiteHelper.COL_NAME, name);
+        contentValues.put(DBLiteHelper.COL_SURNME, surname);
+        contentValues.put(DBLiteHelper.COL_GNDR, gender);
+        contentValues.put(DBLiteHelper.COL_AGE, age);
+
+        if(stat!=null)
+            contentValues.put(DBLiteHelper.COL_STAT, stat);
+        if(tmpid!=null)
+            contentValues.put(DBLiteHelper.COL_TMPID, tmpid);
+
+        return sqLiteDatabase.update(table, contentValues,
+                DBLiteHelper.COL_ID + "=?", new String[]{id});
+    }
+
     public Cursor select_all(String table){
         return sqLiteDatabase.query(table,
                 null, null, null,

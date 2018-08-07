@@ -26,6 +26,13 @@ public class DBLiteHelper extends SQLiteOpenHelper {
     public static final String COL_STAT = "stat";
     public static final String COL_TMPID = "tmpid";
 
+    public static final Integer COL_IDi = 0;
+    public static final Integer COL_NAMEi = 1;
+    public static final Integer COL_SURNMEi = 2;
+    public static final Integer COL_GNDRi = 3;
+    public static final Integer COL_AGEi = 4;
+    public static final Integer COL_STATi = 5;
+    public static final Integer COL_TMPIDi = 6;
 
 
 
