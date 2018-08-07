@@ -86,8 +86,8 @@ public class MainActivity extends AppCompatActivity {
         loadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(MainActivity.this, Records.class);
-                //startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, Records.class);
+                startActivity(intent);
             }
         });
     }
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                     if (dblite.getCount() > 0) {
                         // update in the server
 
-                        while(dblite.moveToNext()){
+                        while (dblite.moveToNext()) {
                             os = conn.getOutputStream();
                             writer = new BufferedWriter(
                                     new OutputStreamWriter(os, "UTF-8"));
@@ -268,14 +268,14 @@ public class MainActivity extends AppCompatActivity {
                             // check status from record
                             // todo
                             String queryr = null;
-                            switch (dblite.getString(DBLiteHelper.COL_STATi)){
+                            switch (dblite.getString(DBLiteHelper.COL_STATi)) {
                                 case "i":
                                     queryr = "insert into tab(name, surname, gender" +
-                                            ",age) values("+
-                                            dblite.getString(DBLiteHelper.COL_NAMEi) +","+
-                                            dblite.getString(DBLiteHelper.COL_SURNMEi) +","+
-                                            dblite.getString(DBLiteHelper.COL_GNDRi) +","+
-                                            dblite.getString(DBLiteHelper.COL_AGEi) +")";
+                                            ",age) values(" +
+                                            dblite.getString(DBLiteHelper.COL_NAMEi) + "," +
+                                            dblite.getString(DBLiteHelper.COL_SURNMEi) + "," +
+                                            dblite.getString(DBLiteHelper.COL_GNDRi) + "," +
+                                            dblite.getString(DBLiteHelper.COL_AGEi) + ")";
                                     break;
 
                                 case "d":
@@ -293,15 +293,14 @@ public class MainActivity extends AppCompatActivity {
                                             dblite.getString(DBLiteHelper.COL_AGEi) +
                                             DBLiteHelper.COL_GNDR + "=" +
                                             dblite.getString(DBLiteHelper.COL_GNDRi) +
-                                            "where "+DBLiteHelper.COL_ID + "=" +
+                                            "where " + DBLiteHelper.COL_ID + "=" +
                                             dblite.getString(DBLiteHelper.COL_TMPIDi);
                                     break;
                             }
 
-                            if(queryr==null) continue;
+                            if (queryr == null) continue;
 
-                            writer.write(query);
-
+                            writer.write(queryr);
 
 
                             writer.flush();
@@ -311,18 +310,36 @@ public class MainActivity extends AppCompatActivity {
 
                             response_code = conn.getResponseCode();
 
-                            if(response_code==HttpURLConnection.HTTP_OK){
+                            if (response_code == HttpURLConnection.HTTP_OK) {
                                 // clear records of temporal
 
-                                if(dbManager.delete(DBLiteHelper.TABLE_NAME_TMP,
-                                        dblite.getString(DBLiteHelper.COL_IDi)) == -1){
-                                    Log.e("ERROR", "SQLite deleting from tmp id::"+
-                                    dblite.getString(DBLiteHelper.COL_IDi));
+                                if (dbManager.delete(DBLiteHelper.TABLE_NAME_TMP,
+                                        dblite.getString(DBLiteHelper.COL_IDi)) == -1) {
+                                    Log.e("ERROR", "SQLite deleting from tmp id::" +
+                                            dblite.getString(DBLiteHelper.COL_IDi));
                                 }
+
+                                // delete record due to the trigger in remote
+
+                                os = conn.getOutputStream();
+                                writer = new BufferedWriter(
+                                        new OutputStreamWriter(os, "UTF-8"));
+
+
+                                queryr = "delete from "+ DBLiteHelper.TABLE_NAME_TMP +
+                                        " order by id desc limit 1";
+                                writer.write(queryr);
+
+
+                                writer.flush();
+                                writer.close();
+                                os.close();
+                                conn.connect();
+
+                                response_code = conn.getResponseCode();
+
                             }
                         }
-
-
                     }
 
                     // if duplicates are not allowed, check primary key
@@ -361,6 +378,10 @@ public class MainActivity extends AppCompatActivity {
                    dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
                       data.getName(), data.getSurname(), data.getGender(), data.getAge(),
                            data.getStat(), data.getTmpid());
+
+                   dbManager.insert(DBLiteHelper.TABLE_NAME,
+                            data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                            null,null);
                 }
             } catch (IOException e){
                 e.printStackTrace();
