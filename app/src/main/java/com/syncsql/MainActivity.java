@@ -75,8 +75,11 @@ public class MainActivity extends AppCompatActivity {
                 age = ageEdit.getText().toString().trim();
 
                 if(gender!=null && !TextUtils.isEmpty(name)
-                        && !TextUtils.isEmpty(surname) && !TextUtils.isEmpty(age))
-                    new StoreTask(name, surname, gender, age).execute();
+                        && !TextUtils.isEmpty(surname) && !TextUtils.isEmpty(age)) {
+
+                    StoreTask task = new StoreTask(name, surname, gender, age);
+                    task.execute();
+                }
                 else{
                     Toast.makeText(MainActivity.this,
                             "Llenar datos", Toast.LENGTH_SHORT).show();
@@ -109,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
     private class StoreTask extends AsyncTask<Void,Void,Void>{
         private ProgressBar spinner;
+        private ProgressDialog progressDialog;
         private HttpURLConnection conn;
         private URL url;
 
@@ -116,18 +120,28 @@ public class MainActivity extends AppCompatActivity {
 
         public StoreTask(String name, String surname, String gender, String age) {
             data = new Data();
+            data.setName(name);
+            data.setSurname(surname);
+            data.setGender(gender);
+            data.setAge(age);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            /*
             spinner = new ProgressBar(getApplicationContext());
             spinner.setVisibility(View.VISIBLE);
+            spinner.animate();
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                     WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
+            */
             dbManager.openDB();
 
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Guardando información");
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.show();
         }
 
         @Override
@@ -177,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
                 // Check if successful connection made
                 if (response_code == HttpURLConnection.HTTP_OK) {
 
+                    Log.e("Server","Request complete for tmp_tab");
+
                     InputStream input = conn.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(input));
                     StringBuilder result = new StringBuilder();
@@ -194,6 +210,9 @@ public class MainActivity extends AppCompatActivity {
 
                     // check integrity of the data
                     Cursor dblite = dbManager.select_all(DBLiteHelper.TABLE_NAME_TMP);
+
+                    Log.e("Server", "Data Size ::" + arraydata.size());
+
 
                     if (arraydata.size() > 0) {
                         // update locally
@@ -257,6 +276,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
+
+                    Log.e("Local","Data size ::" + dblite.getCount());
+
                     if (dblite.getCount() > 0) {
                         // update in the server
 
@@ -266,7 +288,6 @@ public class MainActivity extends AppCompatActivity {
                                     new OutputStreamWriter(os, "UTF-8"));
 
                             // check status from record
-                            // todo
                             String queryr = null;
                             switch (dblite.getString(DBLiteHelper.COL_STATi)) {
                                 case "i":
@@ -345,16 +366,27 @@ public class MainActivity extends AppCompatActivity {
                     // if duplicates are not allowed, check primary key
                     // in this case is allowed since is autoincrement
 
+                    Log.e("Local", "query ::" + insert_query);
+
                     // insert the data in both databases
                     dbManager.insert(DBLiteHelper.TABLE_NAME,
                             data.getName(), data.getSurname(), data.getGender(), data.getAge(),
                             null,null);
+
+                    Log.e("Local", "After inserting locally");
+
+                    // ToDo Problems here..?
+                    // Todo repeat this everywhere
+                    conn.disconnect();
+                    conn.connect();
 
                     os = conn.getOutputStream();
                     writer = new BufferedWriter(
                             new OutputStreamWriter(os, "UTF-8"));
 
                     writer.write(insert_query);
+
+                    Log.e("Local","before flush for server");
 
                     writer.flush();
                     writer.close();
@@ -364,6 +396,8 @@ public class MainActivity extends AppCompatActivity {
                     response_code = conn.getResponseCode();
                     if(response_code!=HttpURLConnection.HTTP_OK){
                         // insert in tmp table
+                        Log.e("Server", "Problemas de conexion");
+
                         dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
                                 data.getName(),
                                 data.getSurname(),
@@ -375,6 +409,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }else{
                     // insert in local temporal table
+                    Log.e("No conn", "Inserting locally");
+
                    dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
                       data.getName(), data.getSurname(), data.getGender(), data.getAge(),
                            data.getStat(), data.getTmpid());
@@ -384,6 +420,7 @@ public class MainActivity extends AppCompatActivity {
                             null,null);
                 }
             } catch (IOException e){
+                Log.e("ERROR", "error detected");
                 e.printStackTrace();
             }
 
@@ -394,8 +431,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            spinner.setVisibility(View.GONE);
+            /*
+            spinner.setVisibility(View.INVISIBLE);
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+            */
+            progressDialog.dismiss();
 
             dbManager.closeDB();
         }

@@ -1,18 +1,20 @@
 package com.syncsql;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.ViewHolder> {
 
-    private List<Data> listData;
+    private ArrayList<Data> listData;
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView name, surname, gender, age;
 
         public ViewHolder(View view) {
@@ -22,10 +24,27 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.ViewHold
             gender = view.findViewById(R.id.textview_gender);
             age = view.findViewById(R.id.textview_age);
         }
+
+        @Override
+        public void onClick(View view) {
+            // When modifying
+            Data data = (Data) view.getTag();
+            Log.e("OnClick", "Data::"+data.getName());
+        }
     }
 
-    public RecordsAdapter(List<Data> listData){
+    public RecordsAdapter(ArrayList<Data> listData){
         this.listData = listData;
+    }
+
+    public void setListData(ArrayList<Data> listData) {
+        this.listData = listData;
+        notifyDataSetChanged();
+    }
+
+    public void deleteData(){
+        // Todo task for deleting from server too and from current database
+
     }
 
     @Override
@@ -43,6 +62,9 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.ViewHold
         holder.surname.setText(data.getSurname());
         holder.gender.setText(data.getGender());
         holder.age.setText(data.getAge());
+
+        holder.itemView.setTag(listData.get(position));
+
     }
 
     @Override

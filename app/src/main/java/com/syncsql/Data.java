@@ -10,6 +10,7 @@ public class Data {
         gender = "";
         stat = "";
         tmpid = "";
+        age = "";
     }
 
     public String getTmpid() {

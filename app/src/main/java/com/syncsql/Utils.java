@@ -34,7 +34,6 @@ public class Utils {
         int j,k;
         String tkey, tvalue;
 
-        Log.e("DEBUG","string::"+rows);
         Data data = new Data();
         for(int i=0; i<rows.length(); ++i){
             if(rows.charAt(i)=='{') {

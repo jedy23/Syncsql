@@ -7,6 +7,8 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.widget.Toast;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -35,6 +37,30 @@ public class Records extends AppCompatActivity {
                 this, LinearLayoutManager.VERTICAL
         ));
         recyclerView.setAdapter(adapter);
+
+
+        // Todo set deleting when swiping. and when touching go to another screen to edit
+
+        ItemTouchHelper.SimpleCallback touchCallbackDelete =
+                new ItemTouchHelper.SimpleCallback(0,
+                        ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                // Confirm to delete
+                Toast.makeText(getApplicationContext(), "Delete", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        ItemTouchHelper touchHelper = new ItemTouchHelper(touchCallbackDelete);
+        touchHelper.attachToRecyclerView(recyclerView);
+
+
+
 
     }
 
