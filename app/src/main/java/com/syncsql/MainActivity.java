@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             try{
                 url = new URL(url_server);
 
-                // open connection with remote database
+                // create and set connection with remote database
                 conn = (HttpURLConnection) url.openConnection();
 
                 conn.setConnectTimeout(CONNECTION_TIMEOUT);
@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 conn.getDoInput();
                 conn.getDoOutput();
 
+                // Todo check the POST parameter in server side
                 // Dummy stuff
                 Uri.Builder builder = new Uri.Builder()
                         .appendQueryParameter("QUERY", select_tmp_query);
@@ -241,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                             response_code = conn.getResponseCode();
                             if (response_code == HttpURLConnection.HTTP_OK){
                                 // update local table
-                                switch (data.getStat()){
+                                switch (d.getStat()){
                                     case "i":
                                         dbManager.insert(DBLiteHelper.TABLE_NAME,
                                                 d.getName(),
@@ -411,17 +412,27 @@ public class MainActivity extends AppCompatActivity {
                     // insert in local temporal table
                     Log.e("No conn", "Inserting locally");
 
-                   dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
-                      data.getName(), data.getSurname(), data.getGender(), data.getAge(),
-                           data.getStat(), data.getTmpid());
+                    dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
+                            data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                            data.getStat(), data.getTmpid());
 
-                   dbManager.insert(DBLiteHelper.TABLE_NAME,
+                    dbManager.insert(DBLiteHelper.TABLE_NAME,
                             data.getName(), data.getSurname(), data.getGender(), data.getAge(),
                             null,null);
                 }
             } catch (IOException e){
                 Log.e("ERROR", "error detected");
                 e.printStackTrace();
+                // insert in local temporal table
+                Log.e("No conn", "Inserting locally");
+
+                dbManager.insert(DBLiteHelper.TABLE_NAME_TMP,
+                        data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                        data.getStat(), data.getTmpid());
+
+                dbManager.insert(DBLiteHelper.TABLE_NAME,
+                        data.getName(), data.getSurname(), data.getGender(), data.getAge(),
+                        null,null);
             }
 
             conn.disconnect();

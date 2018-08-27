@@ -30,6 +30,8 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.ViewHold
             // When modifying
             Data data = (Data) view.getTag();
             Log.e("OnClick", "Data::"+data.getName());
+
+
         }
     }
 
@@ -42,9 +44,21 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.ViewHold
         notifyDataSetChanged();
     }
 
-    public void deleteData(){
+    public void deleteData(Data obj){
         // Todo task for deleting from server too and from current database
 
+        int position = listData.indexOf(obj);
+        boolean del = listData.remove(obj);
+        notifyItemRemoved(position);
+        if (!del){
+            Log.e("Error", "deleting object");
+        }
+
+
+    }
+
+    public ArrayList<Data> getListData() {
+        return listData;
     }
 
     @Override
